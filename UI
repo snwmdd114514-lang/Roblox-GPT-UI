@@ -1,0 +1,399 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+-- 主 GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ProHackerGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- 主窗口
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0,500,0,350)
+mainFrame.Position = UDim2.new(0.2,0,0.2,0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+mainFrame.BackgroundTransparency = 0.5
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0,12)
+mainCorner.Parent = mainFrame
+
+-- 标题栏
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1,0,0,30)
+titleBar.BackgroundColor3 = Color3.fromRGB(20,20,20)
+titleBar.BackgroundTransparency = 0.7
+titleBar.Parent = mainFrame
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0,12)
+titleCorner.Parent = titleBar
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Text = "黑客风 GUI"
+titleLabel.Size = UDim2.new(0.5,0,1,0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.TextColor3 = Color3.fromRGB(0,255,0)
+titleLabel.Font = Enum.Font.Code
+titleLabel.TextSize = 20
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = titleBar
+
+-- 创建标题栏按钮
+local function createTitleButton(text, pos)
+	local btn = Instance.new("TextButton")
+	btn.Text = text
+	btn.Size = UDim2.new(0,30,0,30)
+	btn.Position = pos
+	btn.BackgroundColor3 = Color3.fromRGB(20,20,20)
+	btn.TextColor3 = Color3.fromRGB(0,255,0)
+	btn.Font = Enum.Font.Code
+	btn.TextSize = 20
+	btn.Parent = titleBar
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0,6)
+	corner.Parent = btn
+	return btn
+end
+
+local closeBtn = createTitleButton("X", UDim2.new(1,-35,0,0))
+local maximizeBtn = createTitleButton("□", UDim2.new(1,-70,0,0))
+local foldBtn = createTitleButton("-", UDim2.new(1,-105,0,0))
+
+-- 左侧菜单
+local menuWidth = 140
+local menuFrame = Instance.new("Frame")
+menuFrame.Size = UDim2.new(0,menuWidth,1,-30)
+menuFrame.Position = UDim2.new(0,0,0,30)
+menuFrame.BackgroundColor3 = Color3.fromRGB(10,10,10)
+menuFrame.Parent = mainFrame
+local menuCorner = Instance.new("UICorner")
+menuCorner.CornerRadius = UDim.new(0,10)
+menuCorner.Parent = menuFrame
+
+local menuLayout = Instance.new("UIListLayout")
+menuLayout.SortOrder = Enum.SortOrder.LayoutOrder
+menuLayout.Padding = UDim.new(0,5)
+menuLayout.Parent = menuFrame
+
+-- 一级菜单函数
+local function createMenuButton(name, layoutOrder)
+	local btn = Instance.new("TextButton")
+	btn.Text = name.." ▶"
+	btn.Size = UDim2.new(1,0,0,35)
+	btn.BackgroundColor3 = Color3.fromRGB(20,20,20)
+	btn.TextColor3 = Color3.fromRGB(0,255,0)
+	btn.Font = Enum.Font.Code
+	btn.TextSize = 18
+	btn.LayoutOrder = layoutOrder
+	btn.Parent = menuFrame
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0,6)
+	corner.Parent = btn
+	return btn
+end
+
+-- 二级菜单生成在对应一级菜单下方
+local function createSubMenu(parentBtn, subNames)
+	local subFrame = Instance.new("Frame")
+	subFrame.Size = UDim2.new(1,0,0,0)
+	subFrame.BackgroundTransparency = 1
+	subFrame.ClipsDescendants = true
+	subFrame.LayoutOrder = parentBtn.LayoutOrder + 1
+	subFrame.Parent = menuFrame
+
+	local layout = Instance.new("UIListLayout")
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0,3)
+	layout.Parent = subFrame
+
+	for i,name in ipairs(subNames) do
+		local subBtn = Instance.new("TextButton")
+		subBtn.Text = name
+		subBtn.Size = UDim2.new(1,0,0,30)
+		subBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+		subBtn.TextColor3 = Color3.fromRGB(0,255,0)
+		subBtn.Font = Enum.Font.Code
+		subBtn.TextSize = 16
+		subBtn.LayoutOrder = i
+		subBtn.Parent = subFrame
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0,4)
+		corner.Parent = subBtn
+	end
+
+	local expanded = false
+	parentBtn.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+			local goalSize = expanded and UDim2.new(1,0,0,0) or UDim2.new(1,0,#subNames*30 + (#subNames-1)*3)
+			TweenService:Create(subFrame,TweenInfo.new(0.25,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=goalSize}):Play()
+			expanded = not expanded
+		end
+	end)
+	return subFrame
+end
+
+-- 创建菜单 A/B
+local menuA = createMenuButton("A",1)
+local menuB = createMenuButton("B",3)
+createSubMenu(menuA,{"A1"})
+createSubMenu(menuB,{"B1"})
+
+-- 功能区
+local funcFrame = Instance.new("Frame")
+funcFrame.Size = UDim2.new(1,-menuWidth,1,-30)
+funcFrame.Position = UDim2.new(0,menuWidth,0,30)
+funcFrame.BackgroundTransparency = 1
+funcFrame.Parent = mainFrame
+
+-- 示例滑条（原来的）
+local sliderLabel = Instance.new("TextLabel")
+sliderLabel.Text = "速度"
+sliderLabel.Size = UDim2.new(0,80,0,20)
+sliderLabel.Position = UDim2.new(0,10,0,10)
+sliderLabel.BackgroundTransparency = 1
+sliderLabel.TextColor3 = Color3.fromRGB(0,255,0)
+sliderLabel.Font = Enum.Font.Code
+sliderLabel.TextSize = 18
+sliderLabel.Parent = funcFrame
+
+local slider = Instance.new("TextBox")
+slider.Size = UDim2.new(0,200,0,20)
+slider.Position = UDim2.new(0,100,0,10)
+slider.BackgroundColor3 = Color3.fromRGB(30,30,30)
+slider.TextColor3 = Color3.fromRGB(0,255,0)
+slider.PlaceholderText = "0-100"
+slider.Font = Enum.Font.Code
+slider.TextSize = 16
+slider.Parent = funcFrame
+local sliderCorner = Instance.new("UICorner")
+sliderCorner.CornerRadius = UDim.new(0,6)
+sliderCorner.Parent = slider
+
+-- 开关按钮
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Text = "开关: 关"
+toggleBtn.Size = UDim2.new(0,80,0,25)
+toggleBtn.Position = UDim2.new(0,10,0,50)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+toggleBtn.TextColor3 = Color3.fromRGB(0,255,0)
+toggleBtn.Font = Enum.Font.Code
+toggleBtn.TextSize = 16
+toggleBtn.Parent = funcFrame
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0,6)
+toggleCorner.Parent = toggleBtn
+
+local on = false
+toggleBtn.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+		on = not on
+		toggleBtn.Text = on and "开关: 开" or "开关: 关"
+	end
+end)
+
+-- 玩家信息
+local playerFrame = Instance.new("Frame")
+playerFrame.Size = UDim2.new(0,150,0,50)
+playerFrame.Position = UDim2.new(1,-160,1,-60)
+playerFrame.BackgroundTransparency = 0.3
+playerFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+playerFrame.Parent = mainFrame
+local playerCorner = Instance.new("UICorner")
+playerCorner.CornerRadius = UDim.new(0,10)
+playerCorner.Parent = playerFrame
+
+local avatar = Instance.new("ImageLabel")
+avatar.Size = UDim2.new(0,40,0,40)
+avatar.Position = UDim2.new(0,5,0,5)
+avatar.Image = "rbxthumb://type=AvatarHeadShot&id="..player.UserId.."&w=420&h=420"
+avatar.BackgroundTransparency = 1
+avatar.Parent = playerFrame
+
+local nameLabel = Instance.new("TextLabel")
+nameLabel.Text = player.Name
+nameLabel.Position = UDim2.new(0,50,0,10)
+nameLabel.Size = UDim2.new(0,100,0,30)
+nameLabel.BackgroundTransparency = 1
+nameLabel.TextColor3 = Color3.fromRGB(0,255,0)
+nameLabel.Font = Enum.Font.Code
+nameLabel.TextSize = 18
+nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+nameLabel.Parent = playerFrame
+
+-- 折叠/展开动画
+local folded = false
+foldBtn.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+		local goalSize = folded and UDim2.new(0,500,0,350) or UDim2.new(0,500,0,30)
+		TweenService:Create(mainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quad),{Size=goalSize}):Play()
+		playerFrame.Visible = folded
+		folded = not folded
+	end
+end)
+
+-- 放大/恢复
+local maximized = false
+maximizeBtn.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+		local goalSize,goalPos
+		if maximized then
+			goalSize = UDim2.new(0,500,0,350)
+			goalPos = UDim2.new(0.2,0,0.2,0)
+		else
+			goalSize = UDim2.new(1,0,1,0)
+			goalPos = UDim2.new(0,0,0,0)
+		end
+		TweenService:Create(mainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quad),{Size=goalSize,Position=goalPos}):Play()
+		maximized = not maximized
+	end
+end)
+
+-- 关闭按钮
+closeBtn.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+		screenGui:Destroy()
+	end
+end)
+
+-- 拖动窗口
+local dragging = false
+local dragInput, startPos, startPosFrame
+local function updateDrag(input)
+	local delta = input.Position - startPos
+	mainFrame.Position = UDim2.new(startPosFrame.X.Scale, startPosFrame.X.Offset + delta.X,
+									startPosFrame.Y.Scale, startPosFrame.Y.Offset + delta.Y)
+end
+titleBar.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		startPos = input.Position
+		startPosFrame = mainFrame.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+titleBar.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
+		dragInput = input
+	end
+end)
+UIS.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		updateDrag(input)
+	end
+end)
+
+-- 窗口调整大小
+local resizeBtn = Instance.new("Frame")
+resizeBtn.Size = UDim2.new(0,15,0,15)
+resizeBtn.Position = UDim2.new(1,-15,1,-15)
+resizeBtn.BackgroundColor3 = Color3.fromRGB(0,255,0)
+resizeBtn.BorderSizePixel = 0
+resizeBtn.Parent = mainFrame
+local resizeCorner = Instance.new("UICorner")
+resizeCorner.CornerRadius = UDim.new(0,4)
+resizeCorner.Parent = resizeBtn
+
+local resizing = false
+local startSize, startPosResize
+resizeBtn.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+		resizing = true
+		startSize = mainFrame.Size
+		startPosResize = input.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				resizing = false
+			end
+		end)
+	end
+end)
+UIS.InputChanged:Connect(function(input)
+	if resizing and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+		local delta = input.Position - startPosResize
+		local newSize = UDim2.new(0, math.max(200,startSize.X.Offset + delta.X), 0, math.max(150,startSize.Y.Offset + delta.Y))
+		mainFrame.Size = newSize
+	end
+end)
+
+-- ================== 新增滑条功能 ==================
+-- 滑条数值显示
+local valueLabel = Instance.new("TextLabel")
+valueLabel.Text = "数值: 0"
+valueLabel.Size = UDim2.new(0,80,0,25)
+valueLabel.Position = UDim2.new(0,100,0,50)  -- 紧挨 toggleBtn
+valueLabel.BackgroundTransparency = 1
+valueLabel.TextColor3 = Color3.fromRGB(0,255,0)
+valueLabel.Font = Enum.Font.Code
+valueLabel.TextSize = 16
+valueLabel.TextXAlignment = Enum.TextXAlignment.Left
+valueLabel.Parent = funcFrame
+
+-- 滑条
+local slider2 = Instance.new("Frame")
+slider2.Size = UDim2.new(0,200,0,10)
+slider2.Position = UDim2.new(0,10,0,90)  -- 可根据需求调整 y 值
+slider2.BackgroundColor3 = Color3.fromRGB(50,50,50)
+slider2.Parent = funcFrame
+local slider2Corner = Instance.new("UICorner")
+slider2Corner.CornerRadius = UDim.new(0,5)
+slider2Corner.Parent = slider2
+
+local sliderFill = Instance.new("Frame")
+sliderFill.Size = UDim2.new(0,0,1,0)
+sliderFill.BackgroundColor3 = Color3.fromRGB(0,255,0)
+sliderFill.Parent = slider2
+local fillCorner = Instance.new("UICorner")
+fillCorner.CornerRadius = UDim.new(0,5)
+fillCorner.Parent = sliderFill
+
+-- 滑块
+local handle = Instance.new("Frame")
+handle.Size = UDim2.new(0,15,0,20)
+handle.Position = UDim2.new(0,0,-0.5,0)
+handle.BackgroundColor3 = Color3.fromRGB(0,255,0)
+handle.Parent = slider2
+local handleCorner = Instance.new("UICorner")
+handleCorner.CornerRadius = UDim.new(0,4)
+handleCorner.Parent = handle
+
+-- 拖动滑条逻辑
+local draggingSlider = false
+local function updateSlider(inputPos)
+	local relativeX = math.clamp(inputPos.X - slider2.AbsolutePosition.X, 0, slider2.AbsoluteSize.X)
+	handle.Position = UDim2.new(0, relativeX - handle.AbsoluteSize.X/2, -0.5,0)
+	sliderFill.Size = UDim2.new(0, relativeX, 1, 0)
+	local value = math.floor((relativeX / slider2.AbsoluteSize.X) * 100)
+	valueLabel.Text = "数值: "..value
+end
+
+handle.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+		draggingSlider = true
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				draggingSlider = false
+			end
+		end)
+	end
+end)
+
+UIS.InputChanged:Connect(function(input)
+	if draggingSlider and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		updateSlider(input.Position)
+	end
+end)
+
+-- 点击滑条任意位置也可移动滑块
+slider2.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		updateSlider(input.Position)
+	end
+end)
